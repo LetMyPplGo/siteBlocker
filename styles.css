@@ -1,0 +1,64 @@
+    .toggle-container { margin-bottom: 20px; }
+    .column { flex: 1; padding: 10px; }
+	
+	body {
+		margin: 0;
+		padding: 20px;
+		font-family: Arial, sans-serif;
+		background-color: #333;
+		color: #fff;
+		max-width: 1000px;
+		margin: auto;
+	}
+	h1 {
+		color: #4CAF50;
+	}
+	.form-group {
+		margin-bottom: 15px;
+	}
+	label {
+		display: block;
+		margin-bottom: 5px;
+	}
+	input[type="text"],
+	input[type="time"] {
+		width: 100%;
+		padding: 10px;
+		margin-bottom: 10px;
+		border: none;
+		border-radius: 5px;
+		box-sizing: border-box;
+	}
+	button {
+		background-color: #4CAF50;
+		color: white;
+		padding: 10px 20px;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
+		font-size: 16px;
+	}
+	button:hover {
+		background-color: #45a049;
+	}
+
+
+	.mt-33 {
+		background-color: #424242;
+		padding: 10px;
+		border-radius: 5px;
+	}
+
+    .site-item, .schedule-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-left: 8px;
+		margin-bottom: 8px;
+		background-color: #555;
+		border-radius: 5px;
+    }
+	
+    .site-item button, .schedule-item button {
+        margin-left: auto; /* Pushes the button to the far right */
+    }

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Website Blocker</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="toggle-container">
+        <div id="rulesStatus">Checking rules...</div>
+        <input type="checkbox" id="toggleActive"> Force rules state
+    </div>
+    <div class="d-flex">
+        <div class="column">
+            <h5>Sites</h5>
+            <input type="text" id="siteInput" class="form-control" placeholder="Enter site to block">
+            <button id="addSite" class="btn btn-primary mt-2">Add Site</button>
+            <div id="sitesList" class="mt-3"></div>
+        </div>
+        <div class="column">
+            <h5>Schedules</h5>
+            <input type="time" id="newStartTime" class="form-control" placeholder="Start Time">
+            <input type="time" id="newEndTime" class="form-control mt-2" placeholder="End Time">
+            <button id="addSchedule" class="btn btn-primary mt-2">Add Schedule</button>
+            <div id="scheduleList" class="mt-3"></div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
+
