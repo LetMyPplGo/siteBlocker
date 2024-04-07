@@ -46,7 +46,7 @@ function enableBlocking() {
         // Update dynamic rules
         chrome.declarativeNetRequest.updateDynamicRules({
             addRules: rules
-        }, () => console.log('Adding rules: ' + rules.length + ' rules were added'));
+        });
     });
 }
 
@@ -56,7 +56,7 @@ function removeAllDynamicRules() {
         const ruleIds = rules.map(rule => rule.id);
         chrome.declarativeNetRequest.updateDynamicRules({
             removeRuleIds: ruleIds
-        }, () => console.log('Cleaning rules list: ' + rules.length + ' rules were removed'));
+        });
     });
 }
 
