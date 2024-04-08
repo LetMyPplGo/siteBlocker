@@ -46,17 +46,18 @@ function enableBlocking() {
         // Update dynamic rules
         chrome.declarativeNetRequest.updateDynamicRules({
             addRules: rules
-        });
+        }, () => {
+			// TODO: only youtube is reloaded now. replace with urls from the list
+			chrome.tabs.query({url: '*://*.youtube.com/*'}, function(tabs) {
+				chrome.storage.local.set({closedTabs: tabs})
+				tabs.forEach((tab, index) => {
+					console.log('Reloading the tab: ' + tab.url);
+					chrome.tabs.reload(tab.id);
+				});
+			});
+		});
     });
 	
-	// TODO: only youtube is reloaded now. replace with urls from the list
-	chrome.tabs.query({url: '*://*.youtube.com/*'}, function(tabs) {
-		chrome.storage.local.set({closedTabs: tabs})
-		tabs.forEach((tab, index) => {
-			console.log('Reloading the tab: ' + tab.url);
-			chrome.tabs.reload(tab.id);
-		});
-	});
 }
 
 // Function to fetch and remove all existing dynamic rules
@@ -65,15 +66,16 @@ function removeAllDynamicRules() {
         const ruleIds = rules.map(rule => rule.id);
         chrome.declarativeNetRequest.updateDynamicRules({
             removeRuleIds: ruleIds
-        });
+        }, () => {
+			chrome.storage.local.get(['closedTabs'], function(result) {
+				(result.closedTabs || []).forEach(tab => {
+					console.log('Restoring the tab: ' + tab.url);
+					chrome.tabs.update(tab.id, { url: tab.url });
+				});
+			});
+		});
     });
 	
-    chrome.storage.local.get(['closedTabs'], function(result) {
-        (result.closedTabs || []).forEach(tab => {
-			console.log('Restoring the tab: ' + tab.url);
-			chrome.tabs.update(tab.id, { url: tab.url });
-		});
-	});
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
