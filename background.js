@@ -48,6 +48,15 @@ function enableBlocking() {
             addRules: rules
         });
     });
+	
+	// TODO: only youtube is reloaded now. replace with urls from the list
+	chrome.tabs.query({url: '*://*.youtube.com/*'}, function(tabs) {
+		chrome.storage.local.set({closedTabs: tabs})
+		tabs.forEach((tab, index) => {
+			console.log('Reloading the tab: ' + tab.url);
+			chrome.tabs.reload(tab.id);
+		});
+	});
 }
 
 // Function to fetch and remove all existing dynamic rules
@@ -58,6 +67,13 @@ function removeAllDynamicRules() {
             removeRuleIds: ruleIds
         });
     });
+	
+    chrome.storage.local.get(['closedTabs'], function(result) {
+        (result.closedTabs || []).forEach(tab => {
+			console.log('Restoring the tab: ' + tab.url);
+			chrome.tabs.update(tab.id, { url: tab.url });
+		});
+	});
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -90,6 +106,31 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         console.log('Time to remove blocking rules')
         removeAllDynamicRules();
     }
+});
+
+chrome.idle.onStateChanged.addListener((newState) => {
+	if (newState === 'active') 
+	{
+		chrome.storage.local.get(['schedules'], ({ schedules = [] }) => {
+			const now = new Date();
+			const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+			const isWithinSchedule = schedules.some(({ startTime, endTime }) => {
+				const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+				const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+				return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+			});
+
+			if (isWithinSchedule)
+			{
+				console.log("Enabling rules after wake up");
+				enableBlocking();
+			} else {
+				console.log("Disabling rules after wake up");
+				removeAllDynamicRules();
+			}
+		});
+	}
 });
 
 chrome.action.onClicked.addListener(() => {
