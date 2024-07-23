@@ -15,12 +15,14 @@
     <div class="d-flex">
         <div class="column">
             <h5>Sites</h5>
-            <input type="text" id="siteInput" class="form-control" placeholder="Enter site to block">
-            <button id="addSite" class="btn btn-primary mt-2">Add Site</button>
-            <div id="sitesList" class="mt-3"></div>
+            <input type="text" id="siteInput" class="form-control" placeholder="Enter site">
+            <button id="addBadSite" class="btn btn-primary mt-2">Block Site</button>
+            <button id="addGoodSite" class="btn btn-primary mt-2">Allow Site</button>
+            <div id="badSitesList" class="mt-3"></div>
+            <div id="goodSitesList" class="mt-3"></div>
         </div>
         <div class="column">
-            <h5>Schedules</h5>
+            <h5>The rules will be active during given timeframes:</h5>
             <input type="time" id="newStartTime" class="form-control" placeholder="Start Time">
             <input type="time" id="newEndTime" class="form-control mt-2" placeholder="End Time">
             <button id="addSchedule" class="btn btn-primary mt-2">Add Schedule</button>

@@ -69,56 +69,82 @@ function removeSchedule(indexToRemove) {
     });
 }
 
-
-// Function to refresh the list of blocked sites in the popup
-function refreshBlockedSitesList() {
-    chrome.storage.local.get(['blockedSites'], function(result) {
-        const sitesList = document.getElementById('sitesList');
+function updateSiteList(storage_item, elementID)
+{
+    chrome.storage.local.get([storage_item], function(result) {
+        const sitesList = document.getElementById(elementID);
         sitesList.innerHTML = ''; // Clear the list
-
-        (result.blockedSites || []).forEach(site => {
+        (result[storage_item] || []).forEach(site => {
             const siteItem = document.createElement('div');
             const removeButton = document.createElement('button');
-			siteItem.className = 'site-item';
+            siteItem.className = 'site-item ' + storage_item;
             siteItem.textContent = site;
             removeButton.textContent = 'Remove';
-            removeButton.onclick = function() { removeSite(site); };
+            removeButton.onclick = function() { removeSite(storage_item, site); };
 
             siteItem.appendChild(removeButton);
             sitesList.appendChild(siteItem);
         });
-    });
+    })
+}
+
+// Function to refresh the list of blocked sites in the popup
+function refreshSiteLists() {
+    updateSiteList('blockedSites', 'badSitesList')
+    updateSiteList('allowedSites', 'goodSitesList')
+
+    // chrome.storage.local.get(['blockedSites'], function(result) {
+    //     const sitesList = document.getElementById('sitesList');
+    //     sitesList.innerHTML = ''; // Clear the list
+
+    //     (result.blockedSites || []).forEach(site => {
+    //         const siteItem = document.createElement('div');
+    //         const removeButton = document.createElement('button');
+	// 		siteItem.className = 'site-item';
+    //         siteItem.textContent = site;
+    //         removeButton.textContent = 'Remove';
+    //         removeButton.onclick = function() { removeSite(site); };
+
+    //         siteItem.appendChild(removeButton);
+    //         sitesList.appendChild(siteItem);
+    //     });
+    // });
 }
 
 // Function to remove a site from the block list
-function removeSite(siteToRemove) {
-    chrome.storage.local.get(['blockedSites'], function(result) {
-        const updatedBlockedSites = (result.blockedSites || []).filter(site => site !== siteToRemove);
-        chrome.storage.local.set({blockedSites: updatedBlockedSites}, function() {
-            console.log(`${siteToRemove} removed from block list.`);
+function removeSite(storage_item, siteToRemove) {
+    chrome.storage.local.get([storage_item], function(result) {
+        const updatedSites = (result[storage_item] || []).filter(site => site !== siteToRemove);
+        let new_dict = {}
+        new_dict[storage_item] = updatedSites
+        chrome.storage.local.set(new_dict, function() {
+            console.log(`${siteToRemove} removed from ${storage_item} list.`);
             // Notify background.js to update the rules
             chrome.runtime.sendMessage({command: "updateRules"});
-            refreshBlockedSitesList(); // Refresh the UI list
+            refreshSiteLists(); // Refresh the UI list
         });
     });
 }
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    const addSiteButton = document.getElementById('addSite');
+    const addBadSiteButton = document.getElementById('addBadSite');
+    const addGoodSiteButton = document.getElementById('addGoodSite');
     const siteInput = document.getElementById('siteInput');
 
-    refreshBlockedSitesList();
+    refreshSiteLists();
     refreshScheduleList();
 
-    // Function to add a site to the block list in local storage
-    function addSite(site) {
-        chrome.storage.local.get(['blockedSites'], function(result) {
-            const blockedSites = new Set(result.blockedSites || []);
-            blockedSites.add(site);
-            chrome.storage.local.set({blockedSites: Array.from(blockedSites)}, function() {
-                console.log(site + ' was added to block list');
-				refreshBlockedSitesList();
+    // Function to add a site to the block/allow list in local storage
+    function addSite(site, listName) {
+        chrome.storage.local.get([listName], function(result) {
+            const sites = new Set(result[listName] || []);
+            sites.add(site);
+            let tmp = {}
+            tmp[listName] = Array.from(sites)
+            chrome.storage.local.set(tmp, function() {
+                console.log(`${site} was added to ${listName}`);
+				refreshSiteLists();
                 // Notify background.js to update the rules
                 chrome.runtime.sendMessage({command: "updateRules"});
             });
@@ -126,10 +152,18 @@ document.addEventListener('DOMContentLoaded', function() {
 		
     }
 
-    addSiteButton.addEventListener('click', function() {
+    addBadSiteButton.addEventListener('click', function() {
         const site = siteInput.value.trim();
         if (site) {
-            addSite(site);
+            addSite(site, 'blockedSites');
+            siteInput.value = ''; // Clear input after adding
+        }
+    });
+
+    addGoodSiteButton.addEventListener('click', function() {
+        const site = siteInput.value.trim();
+        if (site) {
+            addSite(site, 'allowedSites');
             siteInput.value = ''; // Clear input after adding
         }
     });

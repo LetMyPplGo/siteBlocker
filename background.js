@@ -33,10 +33,11 @@ function updateAlarmsForSchedules(schedules) {
 
 function enableBlocking() {
 	removeAllDynamicRules();
+    let rules
 
     chrome.storage.local.get(['blockedSites'], function(result) {
         const blockedSites = result.blockedSites || [];
-        const rules = blockedSites.map((site, index) => ({
+        rules = blockedSites.map((site, index) => ({
             id: index + 1,
             priority: 1,
             action: { type: "redirect", redirect: { "extensionPath": "/blocked.html" } },
@@ -44,20 +45,35 @@ function enableBlocking() {
         }));
 		
         // Update dynamic rules
-        chrome.declarativeNetRequest.updateDynamicRules({
-            addRules: rules
-        }, () => {
+        chrome.declarativeNetRequest.updateDynamicRules({addRules: rules}, () => {
 			// TODO: only youtube is reloaded now. replace with urls from the list
 			chrome.tabs.query({url: '*://*.youtube.com/*'}, function(tabs) {
-				chrome.storage.local.set({closedTabs: tabs})
-				tabs.forEach((tab, index) => {
+				chrome.storage.local.set({closedTabs: tabs});
+				tabs.forEach(tab => {
 					console.log('Reloading the tab: ' + tab.url);
 					chrome.tabs.reload(tab.id);
 				});
 			});
 		});
     });
-	
+    
+    // DBG
+    // console.log(rules.length)
+
+    chrome.storage.local.get(['allowedSites'], function(result) {
+        const allowedSites = result.allowedSites || [];
+        allowedSites.push('chrome-extension://*')
+        allowedSites.push('chrome://*')
+        rules = allowedSites.map((site, index) => ({
+            id: index + 101,
+            priority: 1,
+            action: { type: "allow"},
+			condition: { urlFilter: site, resourceTypes: ['main_frame'] }
+        }));
+		
+        // Update dynamic rules
+        chrome.declarativeNetRequest.updateDynamicRules({addRules: rules})
+    });
 }
 
 // Function to fetch and remove all existing dynamic rules

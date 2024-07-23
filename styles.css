@@ -59,6 +59,14 @@
 		border-radius: 5px;
     }
 	
+	.blockedSites {
+		background-color: #5c322c;
+	}
+	
+	.allowedSites {
+		background-color: #4d9957;
+	}
+
     .site-item button, .schedule-item button {
         margin-left: auto; /* Pushes the button to the far right */
     }
