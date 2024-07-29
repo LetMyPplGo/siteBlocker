@@ -47,7 +47,7 @@ function enableBlocking() {
         // Update dynamic rules
         chrome.declarativeNetRequest.updateDynamicRules({addRules: rules}, () => {
 			// TODO: only youtube is reloaded now. replace with urls from the list
-			chrome.tabs.query({url: '*://*.youtube.com/*'}, function(tabs) {
+			chrome.tabs.query({url: '*'}, function(tabs) {
 				chrome.storage.local.set({closedTabs: tabs});
 				tabs.forEach(tab => {
 					console.log('Reloading the tab: ' + tab.url);
@@ -149,6 +149,83 @@ chrome.idle.onStateChanged.addListener((newState) => {
 			}
 		});
 	}
+});
+
+
+function matchesPattern(pattern, str) {
+    let regexPattern = pattern.replace(/[-\/\\^$+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*');
+    // let regexPattern = pattern.replace(/\*/g, '.*');
+    let regex = new RegExp('^' + regexPattern + '$');
+    return regex.test(str);
+}
+
+function redirectCurrentTab()
+{
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        let activeTab = tabs[0];
+        console.log(`Blocking the tab with id ${activeTab.id}`)
+        chrome.tabs.update(activeTab.id, { url: chrome.runtime.getURL("blocked.html") });
+      });
+}
+
+function handleUrl(url, tabId) {
+    chrome.storage.local.get(['allowedSites', 'blockedSites'], function(result) {
+        allowed = false
+        blocked = false
+        const allowedSites = result.allowedSites || []
+        const blockedSites = result.blockedSites || []
+        allowedSites.push('chrome-extension://*')
+        allowedSites.push('chrome://*')
+        for (site of allowedSites) {
+            if (matchesPattern(site, url)) return
+        }
+        for (site of blockedSites) {
+            if (matchesPattern(site, url)) {
+                console.log(`Blocking the tab with id ${tabId}`)
+                chrome.tabs.update(tabId, { url: chrome.runtime.getURL("blocked.html") })
+                // redirectCurrentTab()
+                break
+            }
+        }
+    })
+}
+
+chrome.webNavigation.onCompleted.addListener(function(details) {
+    chrome.storage.local.get(['schedules'], ({ schedules = [] }) => {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const isWithinSchedule = schedules.some(({ startTime, endTime }) => {
+            const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+            const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+            return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+        });
+
+        if (isWithinSchedule)
+        {
+            console.log("Handling the new tab")
+            handleUrl(details.url, details.tabId)
+        }
+    });
+});
+
+
+// Service Worker event handler to wait for the promises to settle
+self.addEventListener('fetch', event => {
+    // Check if the preloadResponse is being used
+    if (event.preloadResponse) {
+        event.respondWith(
+            event.preloadResponse.then(response => {
+                if (response) {
+                    return response;
+                } else {
+                    return fetch(event.request);
+                }
+            }).catch(() => {
+                return fetch(event.request);
+            })
+        );
+    }
 });
 
 chrome.action.onClicked.addListener(() => {
