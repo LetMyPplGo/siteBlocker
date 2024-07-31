@@ -47,7 +47,7 @@ function enableBlocking() {
         // Update dynamic rules
         chrome.declarativeNetRequest.updateDynamicRules({addRules: rules}, () => {
 			// TODO: only youtube is reloaded now. replace with urls from the list
-			chrome.tabs.query({url: '*'}, function(tabs) {
+			chrome.tabs.query({url: 'http*//*youtube*'}, function(tabs) {
 				chrome.storage.local.set({closedTabs: tabs});
 				tabs.forEach(tab => {
 					console.log('Reloading the tab: ' + tab.url);
@@ -168,7 +168,7 @@ function redirectCurrentTab()
       });
 }
 
-function handleUrl(url, tabId) {
+function handleUrl(tabId) {
     chrome.storage.local.get(['allowedSites', 'blockedSites'], function(result) {
         allowed = false
         blocked = false
@@ -176,6 +176,8 @@ function handleUrl(url, tabId) {
         const blockedSites = result.blockedSites || []
         allowedSites.push('chrome-extension://*')
         allowedSites.push('chrome://*')
+        allowedSites.push('about:blank')
+        let url = chrome.tabs[tabId].url
         for (site of allowedSites) {
             if (matchesPattern(site, url)) return
         }
@@ -204,7 +206,7 @@ chrome.webNavigation.onCompleted.addListener(function(details) {
         if (isWithinSchedule)
         {
             console.log("Handling the new tab")
-            handleUrl(details.url, details.tabId)
+            handleUrl(details.tabId)
         }
     });
 });
