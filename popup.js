@@ -1,16 +1,24 @@
 function checkRulesStatus() {
-    chrome.declarativeNetRequest.getDynamicRules((rules) => {
+    chrome.storage.local.get(['schedules'], ({ schedules = [] }) => {
+        const now = new Date()
+        const currentMinutes = now.getHours() * 60 + now.getMinutes()
+        const isWithinSchedule = schedules.some(({ startTime, endTime }) => {
+            const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1])
+            const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1])
+            return currentMinutes >= startMinutes && currentMinutes <= endMinutes
+        })
+        
         const statusElement = document.getElementById('rulesStatus');
-        if (rules && rules.length > 0) {
-            // Rules are ON
-            statusElement.textContent = 'Rules status: ON';
-            statusElement.style.color = 'green';
+        if (isWithinSchedule)
+        {
+            statusElement.textContent = 'Rules status: ON'
+            statusElement.style.color = 'green'
         } else {
             // Rules are OFF
-            statusElement.textContent = 'Rules status: OFF';
-            statusElement.style.color = 'red';
+            statusElement.textContent = 'Rules status: OFF'
+            statusElement.style.color = 'red'
         }
-    });
+    })
 }
 
 // Call the function immediately to check the status as soon as the popup opens
@@ -51,8 +59,6 @@ function addSchedule() {
         schedules.push({ startTime: newStartTime, endTime: newEndTime });
         chrome.storage.local.set({schedules}, function() {
             refreshScheduleList();
-            // Notify background to update rules
-            chrome.runtime.sendMessage({command: "updateSchedules", schedules: schedules});
         });
     });
 }
@@ -63,8 +69,6 @@ function removeSchedule(indexToRemove) {
         schedules.splice(indexToRemove, 1); // Remove schedule at index
         chrome.storage.local.set({schedules}, function() {
             refreshScheduleList();
-            // Notify background to update rules
-            chrome.runtime.sendMessage({command: "updateSchedules", schedules: schedules});
         });
     });
 }
@@ -88,30 +92,13 @@ function updateSiteList(storage_item, elementID)
     })
 }
 
-// Function to refresh the list of blocked sites in the popup
+// Function to refresh the list sites in the popup
 function refreshSiteLists() {
     updateSiteList('blockedSites', 'badSitesList')
     updateSiteList('allowedSites', 'goodSitesList')
-
-    // chrome.storage.local.get(['blockedSites'], function(result) {
-    //     const sitesList = document.getElementById('sitesList');
-    //     sitesList.innerHTML = ''; // Clear the list
-
-    //     (result.blockedSites || []).forEach(site => {
-    //         const siteItem = document.createElement('div');
-    //         const removeButton = document.createElement('button');
-	// 		siteItem.className = 'site-item';
-    //         siteItem.textContent = site;
-    //         removeButton.textContent = 'Remove';
-    //         removeButton.onclick = function() { removeSite(site); };
-
-    //         siteItem.appendChild(removeButton);
-    //         sitesList.appendChild(siteItem);
-    //     });
-    // });
 }
 
-// Function to remove a site from the block list
+// Function to remove a site from the list
 function removeSite(storage_item, siteToRemove) {
     chrome.storage.local.get([storage_item], function(result) {
         const updatedSites = (result[storage_item] || []).filter(site => site !== siteToRemove);
@@ -119,13 +106,10 @@ function removeSite(storage_item, siteToRemove) {
         new_dict[storage_item] = updatedSites
         chrome.storage.local.set(new_dict, function() {
             console.log(`${siteToRemove} removed from ${storage_item} list.`);
-            // Notify background.js to update the rules
-            chrome.runtime.sendMessage({command: "updateRules"});
             refreshSiteLists(); // Refresh the UI list
         });
     });
 }
-
 
 document.addEventListener('DOMContentLoaded', function() {
     const addBadSiteButton = document.getElementById('addBadSite');
@@ -145,8 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
             chrome.storage.local.set(tmp, function() {
                 console.log(`${site} was added to ${listName}`);
 				refreshSiteLists();
-                // Notify background.js to update the rules
-                chrome.runtime.sendMessage({command: "updateRules"});
             });
         });
 		
@@ -168,14 +150,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('addSchedule').addEventListener('click', addSchedule);
-	
-	document.getElementById('toggleActive').addEventListener('change', function() {
-		const isEnabled = this.checked;
-		chrome.storage.local.set({ isEnabled }, function() {
-			chrome.runtime.sendMessage({ command: "togglePlugin", isEnabled });
-		});
-	});
-	
+    document.getElementById('addSchedule').addEventListener('click', addSchedule);	
 });
 

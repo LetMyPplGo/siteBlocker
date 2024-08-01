@@ -4,9 +4,6 @@
   "version": "1.0",
   "description": "Blocks websites based on user-defined schedules.",
   "permissions": [
-    "declarativeNetRequest",
-    "declarativeNetRequestFeedback",
-    "webNavigation",
     "storage",
     "alarms",
     "idle",
@@ -19,7 +16,6 @@
     "service_worker": "background.js"
   },
   "action": {
-    //"default_popup": "popup.html",
     "default_icon": {
       "16": "images/icon16.png",
       "48": "images/icon48.png",
