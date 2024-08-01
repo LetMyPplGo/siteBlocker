@@ -1,15 +1,24 @@
+function isNowInTimePeriods(timePeriods) 
+{
+    const now = new Date();
+    const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+  
+    return timePeriods.some(period => {
+      const [startMinutes, endMinutes] = [period.startTime, period.endTime].map(time => {
+        const [hours, minutes] = time.split(':').map(Number);
+        return hours * 60 + minutes;
+      });
+  
+      return startMinutes < endMinutes
+        ? currentTimeInMinutes >= startMinutes && currentTimeInMinutes <= endMinutes
+        : currentTimeInMinutes >= startMinutes || currentTimeInMinutes <= endMinutes;
+    });
+}
+
 function checkRulesStatus() {
     chrome.storage.local.get(['schedules'], ({ schedules = [] }) => {
-        const now = new Date()
-        const currentMinutes = now.getHours() * 60 + now.getMinutes()
-        const isWithinSchedule = schedules.some(({ startTime, endTime }) => {
-            const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1])
-            const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1])
-            return currentMinutes >= startMinutes && currentMinutes <= endMinutes
-        })
-        
         const statusElement = document.getElementById('rulesStatus');
-        if (isWithinSchedule)
+        if (isNowInTimePeriods(schedules))
         {
             statusElement.textContent = 'Rules status: ON'
             statusElement.style.color = 'green'
