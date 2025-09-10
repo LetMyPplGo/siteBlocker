@@ -35,7 +35,16 @@ function handleTab(tab) {
             for (site of blockedSites) {
                 if (matchesPattern(site, tab.url)) {
                     console.log(`Blocking the tab with url ${tab.url}`)
-                    chrome.tabs.update(tab.id, { url: chrome.runtime.getURL("blocked.html") })
+                    // chrome.tabs.update(tab.id, { url: chrome.runtime.getURL("blocked.html") })
+                    chrome.tabs.get(tab.id, (tabInfo) => {
+                        chrome.tabs.remove(tab.id, () => {
+                            chrome.tabs.create({
+                                url: chrome.runtime.getURL("blocked.html"),
+                                index: tabInfo.index,
+                                active: tabInfo.active
+                            });
+                        });
+                    });
                     break
                 }
             }
