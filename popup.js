@@ -47,10 +47,13 @@ function refreshScheduleList() {
             const scheduleItem = document.createElement('div');
             scheduleItem.className = 'schedule-item';
 			scheduleItem.textContent = `${schedule.startTime} - ${schedule.endTime}`;
-            const removeBtn = document.createElement('button');
-            removeBtn.textContent = 'Remove';
-            removeBtn.onclick = function() { removeSchedule(index); };
-            scheduleItem.appendChild(removeBtn);
+            const allowEdit = document.documentElement.dataset.page == 'edit';
+            if (allowEdit) {
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remove';
+                removeBtn.onclick = function() { removeSchedule(index); };
+                scheduleItem.appendChild(removeBtn);
+            }
             scheduleList.appendChild(scheduleItem);
         });
     });
@@ -89,13 +92,15 @@ function updateSiteList(storage_item, elementID)
         sitesList.innerHTML = ''; // Clear the list
         (result[storage_item] || []).forEach(site => {
             const siteItem = document.createElement('div');
-            const removeButton = document.createElement('button');
             siteItem.className = 'site-item ' + storage_item;
             siteItem.textContent = site;
-            removeButton.textContent = 'Remove';
-            removeButton.onclick = function() { removeSite(storage_item, site); };
-
-            siteItem.appendChild(removeButton);
+            const allowEdit = document.documentElement.dataset.page == 'edit';
+            if (allowEdit) {
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.onclick = function() { removeSite(storage_item, site); };
+                siteItem.appendChild(removeButton);
+            }
             sitesList.appendChild(siteItem);
         });
     })
@@ -140,25 +145,27 @@ document.addEventListener('DOMContentLoaded', function() {
 				refreshSiteLists();
             });
         });
-		
     }
 
-    addBadSiteButton.addEventListener('click', function() {
-        const site = siteInput.value.trim();
-        if (site) {
-            addSite(site, 'blockedSites');
-            siteInput.value = ''; // Clear input after adding
-        }
-    });
+    const allowEdit = document.documentElement.dataset.page == 'edit';
+    if (allowEdit) {
+        addBadSiteButton.addEventListener('click', function() {
+            const site = siteInput.value.trim();
+            if (site) {
+                addSite(site, 'blockedSites');
+                siteInput.value = ''; // Clear input after adding
+            }
+        });
+    
+        addGoodSiteButton.addEventListener('click', function() {
+            const site = siteInput.value.trim();
+            if (site) {
+                addSite(site, 'allowedSites');
+                siteInput.value = ''; // Clear input after adding
+            }
+        });
 
-    addGoodSiteButton.addEventListener('click', function() {
-        const site = siteInput.value.trim();
-        if (site) {
-            addSite(site, 'allowedSites');
-            siteInput.value = ''; // Clear input after adding
-        }
-    });
-
-    document.getElementById('addSchedule').addEventListener('click', addSchedule);	
+        document.getElementById('addSchedule').addEventListener('click', addSchedule);	
+    }
 });
 

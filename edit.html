@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-page="edit">
 <head>
     <meta charset="UTF-8">
     <title>Website Blocker</title>
@@ -16,6 +16,8 @@
         <div class="column">
             <h5>Sites</h5>
             <input type="text" id="siteInput" class="form-control" placeholder="Enter site">
+            <button id="addBadSite" class="btn btn-primary mt-2">Block Site</button>
+            <button id="addGoodSite" class="btn btn-primary mt-2">Allow Site</button>
             <div id="badSitesList" class="mt-3"></div>
             <div id="goodSitesList" class="mt-3"></div>
         </div>
@@ -23,6 +25,7 @@
             <h5>The rules will be active during given timeframes:</h5>
             <input type="time" id="newStartTime" class="form-control" placeholder="Start Time">
             <input type="time" id="newEndTime" class="form-control mt-2" placeholder="End Time">
+            <button id="addSchedule" class="btn btn-primary mt-2">Add Schedule</button>
             <div id="scheduleList" class="mt-3"></div>
         </div>
     </div>
